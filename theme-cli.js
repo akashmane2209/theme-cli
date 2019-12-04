@@ -26,9 +26,9 @@ const updateThemeQuestions = [
     message: "Select component you want to update . . ."
   },
   {
-    type: "input",
-    name: "filepath",
-    message: "Enter file path . . ."
+    type: "editor",
+    name: "contents",
+    message: "Enter component template . . ."
   }
 ];
 
@@ -45,6 +45,8 @@ const setThemeQuestions = [
   },
   ...createThemeQuestions
 ];
+
+const deleteThemeQuestion = [...createThemeQuestions];
 
 program.version("0.0.1").description("Theme Command Line Interface");
 
@@ -84,4 +86,15 @@ program
     }
   });
 
+program
+  .command("delete")
+  .description("Delete theme")
+  .action(async () => {
+    try {
+      const answers = await prompt(deleteThemeQuestion);
+      themeController.deleteThme(answers);
+    } catch (error) {
+      console.log(error);
+    }
+  });
 program.parse(process.argv);

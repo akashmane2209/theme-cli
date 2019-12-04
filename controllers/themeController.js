@@ -22,10 +22,7 @@ exports.setAppTheme = async answerObject => {
     const app = await appController.validateApp(appId, token);
     if (app) {
       console.log("\x1b[33m", "Validating Theme . . .");
-      const theme = await Theme.findOne({
-        name: name.toLowerCase(),
-        group: group.toLowerCase()
-      });
+      const theme = await this.findTheme(name, group);
       if (theme) {
         await appController.setAppTheme(app._id, theme._id);
         console.log("\x1b[32m", "Theme Applied Successfully!");
@@ -64,32 +61,63 @@ exports.createTheme = async themeOptions => {
 
 exports.updateTheme = async answers => {
   try {
-    const { name, group, componentname, filepath } = answers;
-    if (fs.existsSync(filepath)) {
-      const templateUnformatted = fs.readFileSync(filepath, "utf8");
-      let template = templateUnformatted.replace(/\s+/g, "");
-      const data = {
-        [componentname]: {
-          is_active: false,
-          template
-        }
-      };
-      // const theme = await Theme.findByIdAndUpdate(app.currentTheme, data);
-      const theme = await Theme.findOneAndUpdate(
-        { name: name.toLowerCase(), group: group.toLowerCase() },
-        data
-      );
-      if (theme) {
-        console.info("\x1b[32m", name + " Theme updated successfully");
-      } else {
-        console.error("\x1b[31m", "Invalid Theme Name or Group");
+    const { name, group, componentname, contents } = answers;
+
+    const templateUnformatted = contents;
+    let template = templateUnformatted.replace(/\s+/g, "");
+    const data = {
+      [componentname]: {
+        is_active: false,
+        template
       }
+    };
+
+    // const theme = await Theme.findByIdAndUpdate(app.currentTheme, data);
+    const theme = await this.findTheme(name, group);
+    if (theme) {
+      await Theme.findByIdAndUpdate(theme._id, data);
+      console.info("\x1b[32m", name + " Theme updated successfully");
     } else {
-      console.error("\x1b[31m", "Invalid file path");
+      console.error("\x1b[31m", "Invalid Theme Name or Group");
     }
   } catch (error) {
     console.error(error);
   } finally {
     mongoose.disconnect();
   }
+};
+
+exports.deleteThme = async answers => {
+  try {
+    const { name, group } = answers;
+    const theme = await this.findTheme(name, group);
+    if (theme) {
+      console.log("\x1b[33m", "Checking dependencies . . .");
+      const app = await App.findOne({ currentTheme: theme._id });
+      if (!app) {
+        await Theme.findByIdAndDelete(theme._id);
+        console.info("\x1b[32m", name + " Theme deleted successfully");
+      } else {
+        console.error(
+          "\x1b[31m",
+          "An app is currently using theme. Delete failed "
+        );
+      }
+    } else {
+      console.error("\x1b[31m", "Invalid Theme Name or Group");
+    }
+  } catch (error) {
+    console.log(error);
+  } finally {
+    mongoose.disconnect();
+  }
+};
+
+exports.findTheme = async (name, group) => {
+  console.log("\x1b[33m", "Finding Theme . . .");
+  const theme = await Theme.findOne({
+    name: name.toLowerCase(),
+    group: group.toLowerCase()
+  });
+  return theme ? theme : undefined;
 };
