@@ -1,0 +1,7 @@
+{
+  "db": {
+    "connection-string": "mongodb://localhost:27017/theme-cli"
+  },
+  "appId": "5de6b8b0018851c620e605aa",
+  "token": "demo"
+}

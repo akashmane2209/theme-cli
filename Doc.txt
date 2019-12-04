@@ -1,0 +1,18 @@
+Routes
+
+command => theme-cli init [appID]
+/theme/:id
+.post => {
+    set default values for app id
+}
+command => theme-cli -g [appID] || theme-cli get [appID]
+/theme/:id
+.get => {
+    get theme by app id
+}
+
+command => theme-cli -u [appID] 
+/theme/:id
+.put => {
+    update components by app id
+}
